@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Dashboard</title>
+        <!-- Early theme script: apply dark theme class before React mounts to avoid flash -->
+        <script>
+            (function() {
+                try {
+                    var theme = localStorage.getItem('theme');
+                    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (theme === 'dark' || (!theme && prefersDark)) {
+                        document.documentElement.classList.add('theme-dark');
+                        document.documentElement.style.background = '#0f1720';
+                        document.body && (document.body.style.background = '#0f1720');
+                    }
+                } catch (e) { /* ignore */ }
+            })();
+        </script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>
