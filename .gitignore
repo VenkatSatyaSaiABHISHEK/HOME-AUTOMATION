@@ -99,3 +99,13 @@ Thumbs.db
 
 # Java JDK files (exclude the Oracle JDK directory)
 src/hooks/oracleJdk-25/
+**/oracleJdk*/
+
+# Large files and directories
+*.jmod
+*.zip
+*.tar.gz
+bin/
+jmods/
+legal/
+.vercel
