@@ -170,7 +170,8 @@ export const GraphsPage: React.FC<GraphsPageProps> = ({ toggleTheme }) => {
       setEvents(eventData);
 
       // Extract unique device IDs
-      const uniqueDevices = [...new Set(eventData.map(e => e.device_id))].filter(Boolean);
+      const deviceSet = new Set(eventData.map(e => e.device_id));
+      const uniqueDevices = Array.from(deviceSet).filter(Boolean);
       setDevices(uniqueDevices);
 
       // Set default device if none selected
@@ -492,7 +493,7 @@ export const GraphsPage: React.FC<GraphsPageProps> = ({ toggleTheme }) => {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={({ name, percent }) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
                           outerRadius={100}
                           fill="#8884d8"
                           dataKey="value"

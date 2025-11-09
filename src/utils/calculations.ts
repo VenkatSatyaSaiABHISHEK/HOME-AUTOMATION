@@ -59,13 +59,14 @@ export const generateUsageAnalytics = (history: HistoricalData[], costPerKWh: nu
     // Hourly usage pattern
     const hourlyUsage = Array.from({ length: 24 }, (_, hour) => {
         const hourData = history.filter(h => {
-            const hourOfDay = parseISO(h.timestamp).getHours();
+            const timestamp = h.created_at || (h.ts ? new Date(h.ts * 1000).toISOString() : new Date().toISOString());
+            const hourOfDay = parseISO(timestamp).getHours();
             return hourOfDay === hour && h.state === 'ON';
         });
         
         return {
             hour,
-            duration: hourData.reduce((acc, h) => acc + h.duration, 0),
+            duration: hourData.reduce((acc, h) => acc + (h.duration || 0), 0),
             count: hourData.length
         };
     });
@@ -76,11 +77,12 @@ export const generateUsageAnalytics = (history: HistoricalData[], costPerKWh: nu
         date.setDate(date.getDate() - i);
         const dateStr = format(date, 'yyyy-MM-dd');
         
-        const dayData = history.filter(h => 
-            h.timestamp.startsWith(dateStr) && h.state === 'ON'
-        );
+        const dayData = history.filter(h => {
+            const timestamp = h.created_at || (h.ts ? new Date(h.ts * 1000).toISOString() : new Date().toISOString());
+            return timestamp.startsWith(dateStr) && h.state === 'ON';
+        });
         
-        const duration = dayData.reduce((acc, h) => acc + h.duration, 0);
+        const duration = dayData.reduce((acc, h) => acc + (h.duration || 0), 0);
         const powerConsumption = calculatePowerConsumption(60, duration); // Assume 60W device
         
         return {
@@ -97,7 +99,8 @@ export const generateUsageAnalytics = (history: HistoricalData[], costPerKWh: nu
         const weekStartStr = format(startOfWeek(weekStart), 'yyyy-MM-dd');
         
         const weekData = history.filter(h => {
-            const dataDate = parseISO(h.timestamp);
+            const timestamp = h.created_at || (h.ts ? new Date(h.ts * 1000).toISOString() : new Date().toISOString());
+            const dataDate = parseISO(timestamp);
             const weekStartDate = startOfWeek(weekStart);
             const weekEndDate = new Date(weekStartDate);
             weekEndDate.setDate(weekEndDate.getDate() + 7);
@@ -105,11 +108,11 @@ export const generateUsageAnalytics = (history: HistoricalData[], costPerKWh: nu
             return dataDate >= weekStartDate && dataDate < weekEndDate && h.state === 'ON';
         });
         
-        const uniqueDevices = new Set(weekData.map(h => h.deviceId)).size;
+        const uniqueDevices = new Set(weekData.map(h => h.device_id)).size;
         
         return {
             week: format(startOfWeek(weekStart), 'MMM dd'),
-            duration: weekData.reduce((acc, h) => acc + h.duration, 0),
+            duration: weekData.reduce((acc, h) => acc + (h.duration || 0), 0),
             devices: uniqueDevices
         };
     }).reverse();
@@ -119,11 +122,12 @@ export const generateUsageAnalytics = (history: HistoricalData[], costPerKWh: nu
         const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const monthStr = format(monthStart, 'yyyy-MM');
         
-        const monthData = history.filter(h => 
-            h.timestamp.startsWith(monthStr) && h.state === 'ON'
-        );
+        const monthData = history.filter(h => {
+            const timestamp = h.created_at || (h.ts ? new Date(h.ts * 1000).toISOString() : new Date().toISOString());
+            return timestamp.startsWith(monthStr) && h.state === 'ON';
+        });
         
-        const duration = monthData.reduce((acc, h) => acc + h.duration, 0);
+        const duration = monthData.reduce((acc, h) => acc + (h.duration || 0), 0);
         const powerConsumption = calculatePowerConsumption(60, duration);
         
         return {
@@ -152,7 +156,7 @@ export const predictUsage = (history: HistoricalData[], days: number = 30): numb
     if (history.length < 7) return 0;
     
     const recentWeek = history.slice(0, 7);
-    const averageDailyUsage = recentWeek.reduce((acc, h) => acc + (h.state === 'ON' ? h.duration : 0), 0) / 7;
+    const averageDailyUsage = recentWeek.reduce((acc, h) => acc + (h.state === 'ON' ? (h.duration || 0) : 0), 0) / 7;
     
     return averageDailyUsage * days;
 };
@@ -163,8 +167,9 @@ export const getPeakUsageHour = (history: HistoricalData[]): string => {
     
     history.forEach(h => {
         if (h.state === 'ON') {
-            const hour = parseISO(h.timestamp).getHours();
-            hourlyTotals[hour] += h.duration;
+            const timestamp = h.created_at || (h.ts ? new Date(h.ts * 1000).toISOString() : new Date().toISOString());
+            const hour = parseISO(timestamp).getHours();
+            hourlyTotals[hour] += h.duration || 0;
         }
     });
     

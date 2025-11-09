@@ -103,20 +103,25 @@ export const SystemStatusOverview: React.FC<SystemStatusOverviewProps> = ({ onSh
   const checkESP32Status = async () => {
     try {
       const esp32IP = localStorage.getItem('esp32_ip') || 'http://192.168.1.100';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(`${esp32IP}/status`, {
         method: 'GET',
-        timeout: 5000
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const data = await response.json();
         updateServiceStatus('ESP32 Controller', {
           status: 'connected',
           message: `ESP32 online at ${esp32IP}`,
-          details: `✅ HTTP API: Active | 🔌 Devices: ${data.devices?.length || 0} | � Network: Connected | ⚡ GPIO Control: Ready`
+          details: `✅ HTTP API: Active | 🔌 Devices: ${data.devices?.length || 0} | 📶 Network: Connected | ⚡ GPIO Control: Ready`
         });
       } else {
-        throw new Error('ESP32 not responding');
+        throw new (Error as any)('ESP32 not responding');
       }
     } catch (error: any) {
       updateServiceStatus('ESP32 Controller', {
@@ -189,7 +194,7 @@ export const SystemStatusOverview: React.FC<SystemStatusOverviewProps> = ({ onSh
       updateServiceStatus('Supabase Database', {
         status: 'connected',
         message: 'Database connected',
-        details: `✅ Tables: events${deviceError ? '' : ' | custom_devices'} | � URL: ${supabase.supabaseUrl.split('.')[0]}...supabase.co | 🔐 Auth: Configured`
+        details: `✅ Tables: events${deviceError ? '' : ' | custom_devices'} | 🌐 URL: Connected | 🔐 Auth: Configured`
       });
 
     } catch (error: any) {
@@ -604,7 +609,7 @@ export const SystemStatusOverview: React.FC<SystemStatusOverviewProps> = ({ onSh
             <Button 
               variant="outlined" 
               onClick={checkAllServices}
-              size={{ xs: 'small', sm: 'medium' }}
+              size="small"
               sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
             >
               Refresh All
@@ -613,7 +618,7 @@ export const SystemStatusOverview: React.FC<SystemStatusOverviewProps> = ({ onSh
               <Button 
                 variant="contained" 
                 onClick={onShowDiagnostics}
-                size={{ xs: 'small', sm: 'medium' }}
+                size="small"
                 sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
               >
                 Diagnostics
@@ -624,7 +629,7 @@ export const SystemStatusOverview: React.FC<SystemStatusOverviewProps> = ({ onSh
                 variant="contained" 
                 color="error" 
                 onClick={onShowDiagnostics}
-                size={{ xs: 'small', sm: 'medium' }}
+                size="small"
                 sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
               >
                 Fix Issues

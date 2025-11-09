@@ -71,12 +71,15 @@ export const GraphDialog: React.FC<GraphDialogProps> = ({ open, onClose, deviceN
   const usageTimeline = (history || [])
     .slice(-50) // Last 50 events
     .reverse()
-    .map(h => ({
-      time: format(parseISO(h.timestamp), 'MMM dd HH:mm'),
-      duration: h.duration,
-      state: h.state,
-      cost: calculateCost((h.duration / 60) * 60, 0.15) // Assuming 60W device
-    }));
+    .map(h => {
+      const timestamp = h.created_at || (h.ts ? new Date(h.ts * 1000).toISOString() : new Date().toISOString());
+      return {
+        time: format(parseISO(timestamp), 'MMM dd HH:mm'),
+        duration: h.duration || 0,
+        state: h.state,
+        cost: calculateCost(((h.duration || 0) / 60) * 60, 0.15) // Assuming 60W device
+      };
+    });
 
   const hourlyPattern = analytics.hourlyUsage.map(h => ({
     hour: `${h.hour}:00`,
@@ -92,7 +95,7 @@ export const GraphDialog: React.FC<GraphDialogProps> = ({ open, onClose, deviceN
   ];
 
   // Calculate summary stats
-  const totalUsageMinutes = (history || []).reduce((acc, h) => acc + (h.state === 'ON' ? h.duration : 0), 0);
+  const totalUsageMinutes = (history || []).reduce((acc, h) => acc + (h.state === 'ON' ? (h?.duration || 0) : 0), 0);
   const averageSessionLength = totalUsageMinutes / (history?.filter(h => h.state === 'ON').length || 1);
   const totalCost = calculateCost((totalUsageMinutes / 60) * 60, 0.15);
 

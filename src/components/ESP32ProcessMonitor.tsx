@@ -60,7 +60,7 @@ interface ESP32ProcessMonitorProps {
 interface ProcessStep {
   id: string;
   name: string;
-  status: 'pending' | 'running' | 'success' | 'error';
+  status: 'pending' | 'running' | 'success' | 'error' | 'warning';
   message: string;
   timestamp: Date;
   details?: string;
@@ -274,11 +274,15 @@ export const ESP32ProcessMonitor: React.FC<ESP32ProcessMonitorProps> = ({ open, 
 
   const testDeviceAPI = async (deviceIP: string) => {
     try {
-      // Simulate API call
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(`http://${deviceIP}/status`, { 
         method: 'GET',
-        timeout: 5000 
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       return response.ok;
     } catch (error) {
       console.log(`API test failed for ${deviceIP}:`, error);

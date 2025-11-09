@@ -30,7 +30,7 @@ import {
   Refresh,
   Storage,
   RadioButtonUnchecked,
-  Database
+  Dataset as Database
 } from '@mui/icons-material';
 import { supabase } from '../config/supabase';
 

@@ -42,7 +42,7 @@ interface DeviceDiscoveryMonitorProps {
 interface ProcessStep {
   id: string;
   name: string;
-  status: 'pending' | 'running' | 'success' | 'error';
+  status: 'pending' | 'running' | 'success' | 'error' | 'warning';
   message: string;
   timestamp: Date;
   details?: string;
